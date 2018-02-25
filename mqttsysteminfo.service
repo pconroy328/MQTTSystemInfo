@@ -1,0 +1,34 @@
+[Unit]
+Description=MQTT System Information
+After=syslog.target
+
+[Service]
+Type=simple
+User=pconroy
+Group=pconroy
+WorkingDirectory=/home/pconroy/MQTTSystemInfo
+ExecStart=/usr/bin/python /home/pconroy/MQTTSystemInfo/Main.py
+StandardOutput=null
+StandardError=null
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=default.target
+
+#
+# After this the steps are:
+# Create the unit file in /etc/systemd/system (the file name before .service will be the name you call to start/stop/restart the service)
+# Set file permissions to 644
+# Tell systemd that there is a new unit file: systemctl daemon-reload
+# Start service: systemctl start <service>
+# Check the service status: systemctl status <service>
+###
+# sudo cp mqttsysteminfo.service /etc/systemd/system/.
+# sudo chmod 644 /etc/systemd/system/mqttsysteminfo.service
+# sudo systemctl daemon-reload
+# sudo systemctl start mqttsysteminfo
+# sudo systemctl status mqttsysteminfo
+
+
+
