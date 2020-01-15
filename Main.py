@@ -11,6 +11,7 @@ import psutil
 import paho.mqtt.client as mqtt
 import logging
 import time
+import sys
 
 
 class SystemStats(object):
@@ -94,9 +95,27 @@ class SystemStats(object):
         return psutil.cpu_percent()
 
     # ------------------------------------------------------------------------------------------------
+    def root_disk_size(self):
+        return (psutil.disk_usage('/').total / 1000 / 1000 / 1000.0)
+
+    # ------------------------------------------------------------------------------------------------
+    def root_disk_percent_full(self):
+        return psutil.disk_usage('/').percent
+
+    # ------------------------------------------------------------------------------------------------
     def boot_datetime(self):
         return datetime.datetime.fromtimestamp(psutil.boot_time()).strftime("%Y-%m-%d %H:%M:%S")
 
+    # ------------------------------------------------------------------------------------------------
+    def network_rcv_errors(self):
+        return psutil.net_io_counters().errin
+
+    # ------------------------------------------------------------------------------------------------
+    def network_xmt_errors(self):
+        return psutil.net_io_counters().errout
+
+    # ------------------------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------
     def rpi_model(self):
         origoutput = check_output(['cat', '/proc/cpuinfo'])
@@ -129,7 +148,7 @@ class SystemStats(object):
             return 'Pi 3 Model B (Embest, China)'
         elif 'a02082' in rev:
             return 'Pi 3 Model B (Sony, UK)'
-        elif '9000C1' in rev:
+        elif '9000c1' in rev:
             return 'Pi Zero W'
         elif '900093' in rev:
             return 'Pi Zero v1.3'
@@ -156,6 +175,10 @@ class SystemStats(object):
                     "cpu_pct" : self.cpu_percent(),
                     "cpu_temp": self.get_cpu_temperature(),
                     "cpu_cnt" : self.cpu_count(),
+                    "root_size" : self.root_disk_size(),
+                    "root_percent" : self.root_disk_percent_full(),
+                    "xmt_errors" : self.network_xmt_errors(),
+                    "rcv_errors" : self.network_rcv_errors(),
                     "ssid": self.get_SSID(),
                     "model" : self.rpi_model_string(),
                     "camera_present": self.get_camera_present()
@@ -165,9 +188,8 @@ class SystemStats(object):
 
 class MessageHandler(object):
     def __init__(self,broker_address="10.0.0.11"):
-        self.aws_broker_address = 'ec2-52-32-56-28.us-west-2.compute.amazonaws.com'
-        self.local_broker_address = 'gx100'
-        self.broker_address = self.aws_broker_address
+        self.local_broker_address = '10.0.0.11'
+        self.broker_address = self.local_broker_address
         self.client = mqtt.Client(client_id="", clean_session=True, userdata=None)
 
     #---------------------------------------------------------------------
@@ -214,6 +236,14 @@ class MessageHandler(object):
 
 m = MessageHandler()
 m.start()
+
+try: 
+   mqtt_broker_address = sys.argv[1]
+except:
+   mqtt_broker_address = '10.0.0.11'
+
+print 'Connecting to ', mqtt_broker_address
+
 while True:
     m.send_node_status_info()
     m.send_host_status_info()
