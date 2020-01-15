@@ -187,9 +187,9 @@ class SystemStats(object):
 
 
 class MessageHandler(object):
-    def __init__(self,broker_address="10.0.0.11"):
-        self.local_broker_address = '10.0.0.11'
-        self.broker_address = self.local_broker_address
+    def __init__(self,broker_address="mqtt.local"):
+        #self.local_broker_address = ''
+        self.broker_address = broker_address
         self.client = mqtt.Client(client_id="", clean_session=True, userdata=None)
 
     #---------------------------------------------------------------------
@@ -205,6 +205,7 @@ class MessageHandler(object):
         logging.info('Message handling start - v4')
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
+        print('Start - connecting to ', self.broker_address)
         self.client.connect(self.broker_address)
         #self.client.subscribe(self.doorStatusTopic,0)
         self.client.loop_start()
@@ -234,15 +235,15 @@ class MessageHandler(object):
         self.client.publish(topic, json_data,qos=0)
 
 
-m = MessageHandler()
-m.start()
-
 try: 
    mqtt_broker_address = sys.argv[1]
 except:
-   mqtt_broker_address = '10.0.0.11'
+   mqtt_broker_address = 'mqtt.local'
 
-print 'Connecting to ', mqtt_broker_address
+print('Connecting to ', mqtt_broker_address)
+
+m = MessageHandler(broker_address=mqtt_broker_address)
+m.start()
 
 while True:
     m.send_node_status_info()
