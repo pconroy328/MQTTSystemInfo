@@ -144,24 +144,61 @@ class SystemStats(object):
     def rpi_model_string(self):
         model = self.rpi_model()
         rev = self.rpi_revision()
-        if 'a22082' in rev:
-            return 'Pi 3 Model B (Embest, China)'
-        elif 'a02082' in rev:
-            return 'Pi 3 Model B (Sony, UK)'
-        elif '9000c1' in rev:
-            return 'Pi Zero W'
-        elif '900093' in rev:
-            return 'Pi Zero v1.3'
-        elif '900092' in rev:
-            return 'Pi Zero v1.2'
-        elif 'a22042' in rev:
-            return 'Pi 2 Model B v1.2'
-        elif 'a21041' in rev:
-            return 'Pi 2 Model B v1.1 (Embest, China)'
-        elif 'a01041' in rev:
-            return 'Pi 2 Model B v1.1 (Sony, UK)'
-        elif '000e' in rev:
-            return 'Pi Model B Rev 2'
+	# 15Jan2020
+	if '900021' in rev:
+	    return 'A+ 1.1 512MB Sony UK'
+	elif '900032' in rev:
+	    return 'B+ 1.2 512MB Sony UK'
+	elif '900092' in rev:
+	    return 'Zero 1.2 512MB Sony UK'
+	elif '900093' in rev:
+	    return 'Zero 1.3 512MB Sony UK'
+	elif '9000c1' in rev:
+	    return 'Zero W 1.1 512MB Sony UK'
+	elif '9020e0' in rev:
+	    return '3A+ 1.0 512MB Sony UK'
+	elif '920092' in rev:
+	    return 'Zero 1.2 512MB Embest'
+	elif '920093' in rev:
+	    return 'Zero 1.3 512MB Embest'
+	elif '900061' in rev:
+	    return 'CM 1.1 512MB Sony UK'
+	elif 'a01040' in rev:
+	    return '2B 1.0 1GB Sony UK'
+	elif 'a01041' in rev:
+	    return '2B 1.1 1GB Sony UK'
+	elif 'a02082' in rev:
+	    return '3B 1.2 1GB Sony UK'
+	elif 'a020a0' in rev:
+	    return 'CM3 1.0 1GB Sony UK'
+	elif 'a020d3' in rev:
+	    return '3B+ 1.3 1GB Sony UK'
+	elif 'a02042' in rev:
+	    return '2B (with BCM2837) 1.2 1GB Sony UK'
+	elif 'a21041' in rev:
+	    return '2B 1.1 1GB Embest'
+	elif 'a22042' in rev:
+	    return '2B (with BCM2837) 1.2 1GB Embest'
+	elif 'a22082' in rev:
+	    return '3B 1.2 1GB Embest'
+	elif 'a220a0' in rev:
+	    return 'CM3 1.0 1GB Embest'
+	elif 'a32082' in rev:
+	    return '3B 1.2 1GB Sony Japan'
+	elif 'a52082' in rev:
+	    return '3B 1.2 1GB Stadium'
+	elif 'a22083' in rev:
+	    return '3B 1.3 1GB Embest'
+	elif 'a02100' in rev:
+	    return 'CM3+ 1.0 1GB Sony UK'
+	elif 'a03111' in rev:
+	    return '4B 1.1 1GB Sony UK'
+	elif 'b03111' in rev:
+	    return '4B 1.1 2GB Sony UK'
+	elif 'c03111' in rev:
+	    return '4B 1.1 4GB Sony UK'
+	elif 'c03112' in rev:
+	    return '4B 1.2 4GB Sony UK'
         return 'Unknown {}'.format(rev)
 
     # ------------------------------------------------------------------------------------------------
@@ -202,7 +239,7 @@ class MessageHandler(object):
         logging.warn('Not expecting inbound messages')
 
     def start(self):
-        logging.info('Message handling start - v4')
+    3    logging.info('Message handling start - v4')
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
         print('Start - connecting to ', self.broker_address)
