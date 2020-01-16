@@ -1,4 +1,5 @@
 from datetime import timedelta
+from socket import socket
 from subprocess import check_output
 import json
 import datetime
@@ -12,6 +13,10 @@ import paho.mqtt.client as mqtt
 import logging
 import time
 import sys
+import logging
+
+# from zeroconf import Zeroconf, ServiceInfo, MyListener, ServiceBrowser
+from zeroconf import IPVersion, ServiceBrowser, ServiceStateChange, Zeroconf
 
 
 class SystemStats(object):
@@ -204,79 +209,114 @@ class SystemStats(object):
 
     # ------------------------------------------------------------------------------------------------
     def asJSON(self):
-        myDict = OrderedDict( {
-                    "host" : self.get_hostname(),
-                    "eth0 IP" : self.get_eth_ipaddress(),
-                    "wlan0 IP" : self.get_wifi_ipaddress(),
-                    "booted" : self.boot_datetime(),
-                    "uptime": self.get_uptime(),
-                    "cpu_pct" : self.cpu_percent(),
-                    "cpu_temp": self.get_cpu_temperature(),
-                    "cpu_cnt" : self.cpu_count(),
-                    "root_size" : self.root_disk_size(),
-                    "root_percent" : self.root_disk_percent_full(),
-                    "xmt_errors" : self.network_xmt_errors(),
-                    "rcv_errors" : self.network_rcv_errors(),
-                    "ssid": self.get_SSID(),
-                    "model" : self.rpi_model_string(),
-                    "camera_present": self.get_camera_present()
-                   })
+        myDict = OrderedDict({
+            "host": self.get_hostname(),
+            "eth0 IP": self.get_eth_ipaddress(),
+            "wlan0 IP": self.get_wifi_ipaddress(),
+            "booted": self.boot_datetime(),
+            "uptime": self.get_uptime(),
+            "cpu_pct": self.cpu_percent(),
+            "cpu_temp": self.get_cpu_temperature(),
+            "cpu_cnt": self.cpu_count(),
+            "root_size": self.root_disk_size(),
+            "root_percent": self.root_disk_percent_full(),
+            "xmt_errors": self.network_xmt_errors(),
+            "rcv_errors": self.network_rcv_errors(),
+            "ssid": self.get_SSID(),
+            "model": self.rpi_model_string(),
+            "camera_present": self.get_camera_present()
+        })
         return json.dumps(myDict)
 
 
 class MessageHandler(object):
-    def __init__(self,broker_address="mqtt.local"):
-        #self.local_broker_address = ''
+    def __init__(self, broker_address="mqtt.local"):
+        # self.local_broker_address = ''
         self.broker_address = broker_address
         self.client = mqtt.Client(client_id="", clean_session=True, userdata=None)
 
-    #---------------------------------------------------------------------
+    # ---------------------------------------------------------------------
     def on_connect(self, client, userdata, flags, rc):
         logging.info('Connected to the MQTT broker!')
         pass
 
-    #---------------------------------------------------------------------
+    # ---------------------------------------------------------------------
     def on_message(self, client, userdata, message):
-        logging.warn('Not expecting inbound messages')
+        logging.warning('Not expecting inbound messages')
 
     def start(self):
-    3    logging.info('Message handling start - v4')
+        logging.info('Message handling start - v4')
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
         print('Start - connecting to ', self.broker_address)
         self.client.connect(self.broker_address)
-        #self.client.subscribe(self.doorStatusTopic,0)
+        # self.client.subscribe(self.doorStatusTopic,0)
         self.client.loop_start()
 
     def cleanup(self):
-        #self.client.unsubscribe(self.doorStatusTopic)
+        # self.client.unsubscribe(self.doorStatusTopic)
         self.client.disconnect()
         self.client.loop_stop()
 
     def send_node_status_info(self):
         # logging.info('Sending a MQTT System Info!')
-        print 'Sending a MQTT System Info to NODE!'
+        print('Sending a MQTT System Info to NODE!')
         data = {}
         data['topic'] = 'NODE'
         data['datetime'] = datetime.datetime.now().replace(microsecond=0).isoformat()
         json_data = SystemStats().asJSON()
-        self.client.publish('NODE', json_data,qos=0)
+        self.client.publish('NODE', json_data, qos=0)
 
     def send_host_status_info(self):
         # logging.info('Sending a MQTT System Info!')
-        print 'Sending a MQTT System Info to hostname!'
+        logging.info('Sending a MQTT System Info to hostname!')
         topic = SystemStats().get_hostname().upper()
         data = {}
         data['datetime'] = datetime.datetime.now().replace(microsecond=0).isoformat()
         json_data = SystemStats().asJSON()
         data['topic'] = topic
-        self.client.publish(topic, json_data,qos=0)
+        self.client.publish(topic, json_data, qos=0)
 
 
-try: 
-   mqtt_broker_address = sys.argv[1]
+def on_service_state_change(
+        zeroconf: Zeroconf, service_type: str, name: str, state_change: ServiceStateChange
+) -> None:
+    print("Service %s of type %s state changed: %s" % (name, service_type, state_change))
+
+    if state_change is ServiceStateChange.Added:
+        info = zeroconf.get_service_info(service_type, name)
+        if info:
+            addresses = ["%s:%d" % (socket.inet_ntoa(addr), cast(int, info.port)) for addr in info.addresses]
+            print("  Addresses: %s" % ", ".join(addresses))
+            print("  Weight: %d, priority: %d" % (info.weight, info.priority))
+            print("  Server: %s" % (info.server,))
+            if info.properties:
+                print("  Properties are:")
+                for key, value in info.properties.items():
+                    print("    %s: %s" % (key, value))
+            else:
+                print("  No properties")
+        else:
+            print("  No info")
+        print('\n')
+
+
+logging.basicConfig(filename='/tmp/mqttsysteminfo.log', level=logging.DEBUG)
+logging.info('Attempting to find mqtt broker via mDNS')
+
+print("Multicast DNS Service Discovery for Python Browser test")
+r = Zeroconf()
+print("Testing browsing for a service...")
+type = "_mqtt._tcp.local."
+
+browser = ServiceBrowser(r, type, handlers=[on_service_state_change])
+time.sleep(60)
+r.close()
+
+try:
+    mqtt_broker_address = sys.argv[1]
 except:
-   mqtt_broker_address = 'mqtt.local'
+    mqtt_broker_address = 'mqtt.local'
 
 print('Connecting to ', mqtt_broker_address)
 
