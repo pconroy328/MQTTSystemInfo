@@ -277,54 +277,54 @@ class MessageHandler(object):
         data['topic'] = topic
         self.client.publish(topic, json_data, qos=0)
 
-    def discover_mqtt_host():
-        from zeroconf import ServiceBrowser, Zeroconf
-        host = None
-        info = None
+def discover_mqtt_host():
+    from zeroconf import ServiceBrowser, Zeroconf
+    host = None
+    info = None
 
-        def on_service_state_change(zeroconf, service_type, name, state_change):
-            pass
+    def on_service_state_change(zeroconf, service_type, name, state_change):
+        pass
 
-        zeroconf = Zeroconf()
-        browser = ServiceBrowser(zeroconf, "_mqttX._tcp.local.",
-                                 handlers=[on_service_state_change])
-        i = 0
-        while not host:
-            time.sleep(0.1)
-            if browser.services:
-                service = list(browser.services.values())[0]
-                info = zeroconf.get_service_info(service.name, service.alias)
-                ##print('info', info)
-                ##print('info.server', info.server)
-                host = socket.inet_ntoa(info.address)
-            i += 1
-            if i > 50:
-                break
-        zeroconf.close()
-        try:
-            return info.server, host
-        except AttributeError:
-            return None
+    zeroconf = Zeroconf()
+    browser = ServiceBrowser(zeroconf, "_mqttX._tcp.local.",
+                             handlers=[on_service_state_change])
+    i = 0
+    while not host:
+        time.sleep(0.1)
+        if browser.services:
+            service = list(browser.services.values())[0]
+            info = zeroconf.get_service_info(service.name, service.alias)
+            ##print('info', info)
+            ##print('info.server', info.server)
+            host = socket.inet_ntoa(info.address)
+        i += 1
+        if i > 50:
+            break
+    zeroconf.close()
+    try:
+        return info.server, host
+    except AttributeError:
+        return None
 
 
 logging.basicConfig(filename='/tmp/mqttsysteminfo.log', level=logging.DEBUG)
-logging.INFO("Multicast DNS Service Discovery for Python Browser test")
-logging.info('Attempting to find mqtt broker via mDNS')
+logging.info('Multicast DNS Service Discovery for Python Browser test')
+logging.debug('Attempting to find mqtt broker via mDNS')
 
 
 host = discover_mqtt_host()
 if (host is not None):
     mqtt_broker_address = host[0]
-    logging.INFO( 'Found MQTT Broker using mDNS on {}.{}'.format(host[0], host[1]))
+    logging.info( 'Found MQTT Broker using mDNS on {}.{}'.format(host[0], host[1]))
 else:
-    logging.WARNING('Unable to locate MQTT Broker using DNS')
+    logging.warning('Unable to locate MQTT Broker using DNS')
     try:
         mqtt_broker_address = sys.argv[1]
     except:
-        logging.CRITICAL('No MQTT Broker address passed in via command line')
+        logging.critical('No MQTT Broker address passed in via command line')
         sys.exit(1)
 
-logging.DEBUG('Connecting to {}'.format(mqtt_broker_address))
+logging.debug('Connecting to {}'.format(mqtt_broker_address))
 m = MessageHandler(broker_address=mqtt_broker_address)
 m.start()
 
