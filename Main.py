@@ -1,5 +1,5 @@
 from datetime import timedelta
-from socket import socket
+import socket
 from subprocess import check_output
 import json
 import datetime
@@ -286,7 +286,7 @@ def discover_mqtt_host():
         pass
 
     zeroconf = Zeroconf()
-    browser = ServiceBrowser(zeroconf, "_mqttX._tcp.local.",
+    browser = ServiceBrowser(zeroconf, "_mqtt._tcp.local.",
                              handlers=[on_service_state_change])
     i = 0
     while not host:
@@ -307,7 +307,7 @@ def discover_mqtt_host():
         return None
 
 
-logging.basicConfig(filename='/tmp/mqttsysteminfo.log', level=logging.DEBUG)
+logging.basicConfig(filename='/tmp/mqttsysteminfo.log', level=logging.INFO)
 logging.info('Multicast DNS Service Discovery for Python Browser test')
 logging.debug('Attempting to find mqtt broker via mDNS')
 
