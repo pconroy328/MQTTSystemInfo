@@ -6,19 +6,20 @@ import datetime
 from collections import OrderedDict
 
 # sudo apt-get install python-dev
-# sudo pip install psutil
+# sudo pip install psutil or sudo apt-get install python3-psutil
+# pip3 install paho-mqtt
+# pip3 install zeroconf
+
+
 import os
 import psutil
 import paho.mqtt.client as mqtt
 import logging
 import time
 import sys
-import logging
 
-# from zeroconf import Zeroconf, ServiceInfo, MyListener, ServiceBrowser
-from zeroconf import IPVersion, ServiceBrowser, ServiceStateChange, Zeroconf
-
-
+# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 class SystemStats(object):
     # ------------------------------------------------------------------------------------------------
     def __init__(self):
@@ -228,7 +229,8 @@ class SystemStats(object):
         })
         return json.dumps(myDict)
 
-
+# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
 class MessageHandler(object):
     def __init__(self, broker_address="mqtt.local"):
         # self.local_broker_address = ''
@@ -259,8 +261,7 @@ class MessageHandler(object):
         self.client.loop_stop()
 
     def send_node_status_info(self):
-        # logging.info('Sending a MQTT System Info!')
-        print('Sending a MQTT System Info to NODE!')
+        #logging.DEBUG('Sending System Status Info on 'NODE' topic!')
         data = {}
         data['topic'] = 'NODE'
         data['datetime'] = datetime.datetime.now().replace(microsecond=0).isoformat()
@@ -268,8 +269,7 @@ class MessageHandler(object):
         self.client.publish('NODE', json_data, qos=0)
 
     def send_host_status_info(self):
-        # logging.info('Sending a MQTT System Info!')
-        logging.info('Sending a MQTT System Info to hostname!')
+        logging.info('Sending System Status Info on node name topic')
         topic = SystemStats().get_hostname().upper()
         data = {}
         data['datetime'] = datetime.datetime.now().replace(microsecond=0).isoformat()
@@ -277,49 +277,54 @@ class MessageHandler(object):
         data['topic'] = topic
         self.client.publish(topic, json_data, qos=0)
 
+    def discover_mqtt_host():
+        from zeroconf import ServiceBrowser, Zeroconf
+        host = None
+        info = None
 
-def on_service_state_change(
-        zeroconf: Zeroconf, service_type: str, name: str, state_change: ServiceStateChange
-) -> None:
-    print("Service %s of type %s state changed: %s" % (name, service_type, state_change))
+        def on_service_state_change(zeroconf, service_type, name, state_change):
+            pass
 
-    if state_change is ServiceStateChange.Added:
-        info = zeroconf.get_service_info(service_type, name)
-        if info:
-            addresses = ["%s:%d" % (socket.inet_ntoa(addr), cast(int, info.port)) for addr in info.addresses]
-            print("  Addresses: %s" % ", ".join(addresses))
-            print("  Weight: %d, priority: %d" % (info.weight, info.priority))
-            print("  Server: %s" % (info.server,))
-            if info.properties:
-                print("  Properties are:")
-                for key, value in info.properties.items():
-                    print("    %s: %s" % (key, value))
-            else:
-                print("  No properties")
-        else:
-            print("  No info")
-        print('\n')
+        zeroconf = Zeroconf()
+        browser = ServiceBrowser(zeroconf, "_mqttX._tcp.local.",
+                                 handlers=[on_service_state_change])
+        i = 0
+        while not host:
+            time.sleep(0.1)
+            if browser.services:
+                service = list(browser.services.values())[0]
+                info = zeroconf.get_service_info(service.name, service.alias)
+                ##print('info', info)
+                ##print('info.server', info.server)
+                host = socket.inet_ntoa(info.address)
+            i += 1
+            if i > 50:
+                break
+        zeroconf.close()
+        try:
+            return info.server, host
+        except AttributeError:
+            return None
 
 
 logging.basicConfig(filename='/tmp/mqttsysteminfo.log', level=logging.DEBUG)
+logging.INFO("Multicast DNS Service Discovery for Python Browser test")
 logging.info('Attempting to find mqtt broker via mDNS')
 
-print("Multicast DNS Service Discovery for Python Browser test")
-r = Zeroconf()
-print("Testing browsing for a service...")
-type = "_mqtt._tcp.local."
 
-browser = ServiceBrowser(r, type, handlers=[on_service_state_change])
-time.sleep(60)
-r.close()
+host = discover_mqtt_host()
+if (host is not None):
+    mqtt_broker_address = host[0]
+    logging.INFO( 'Found MQTT Broker using mDNS on {}.{}'.format(host[0], host[1]))
+else:
+    logging.WARNING('Unable to locate MQTT Broker using DNS')
+    try:
+        mqtt_broker_address = sys.argv[1]
+    except:
+        logging.CRITICAL('No MQTT Broker address passed in via command line')
+        sys.exit(1)
 
-try:
-    mqtt_broker_address = sys.argv[1]
-except:
-    mqtt_broker_address = 'mqtt.local'
-
-print('Connecting to ', mqtt_broker_address)
-
+logging.DEBUG('Connecting to {}'.format(mqtt_broker_address))
 m = MessageHandler(broker_address=mqtt_broker_address)
 m.start()
 
