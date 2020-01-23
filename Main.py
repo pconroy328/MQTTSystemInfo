@@ -126,32 +126,32 @@ class SystemStats(object):
     # ------------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------
     def rpi_model(self):
-        origoutput = check_output(['cat', '/proc/cpuinfo'])
+        origoutput = str(check_output(['cat', '/proc/cpuinfo']))
         # Find the Hardware Section
-        start = origoutput.find(b'Hardware')
+        start = origoutput.find('Hardware')
         # Now advance past the colon
-        start = origoutput[start:].find(b':') + start
+        start = origoutput[start:].find(':') + start
         # Look for next line with starts with 'Revision'
-        end = origoutput[start:].find(b'Revision') + start
+        end = origoutput[start:].find('Revision') + start
         model = origoutput[start + 1:end - 1]
         return model
 
     # ------------------------------------------------------------------------------------------------
     def rpi_revision(self):
-        origoutput = check_output(['cat', '/proc/cpuinfo'])
+        origoutput = str(check_output(['cat', '/proc/cpuinfo']))
         # Find the Hardware Section
-        start = origoutput.find(b'Revision')
+        start = origoutput.find('Revision')
         # Now advance past the colon
-        start = origoutput[start:].find(b':') + start
+        start = origoutput[start:].find(':') + start
         # Look for next line with starts with 'Revision'
-        end = origoutput[start:].find(b'Serial') + start
+        end = origoutput[start:].find('Serial') + start
         revision = origoutput[start + 1:end - 1]
         return revision
 
     # ------------------------------------------------------------------------------------------------
     def rpi_model_string(self):
-        model = str(self.rpi_model())
-        rev = str(self.rpi_revision())
+        model = self.rpi_model()
+        rev = self.rpi_revision()
         # 15Jan2020
         if '900021' in rev:
             return 'A+ 1.1 512MB Sony UK'
@@ -269,7 +269,7 @@ class MessageHandler(object):
         data['datetime'] = datetime.datetime.now().replace(microsecond=0).isoformat()
         json_data = SystemStats().asJSON()
         self.client.publish('NODE', json_data, qos=0)
-
+3
     def send_host_status_info(self):
         logging.info('Sending System Status Info on node name topic')
         topic = SystemStats().get_hostname().upper()
