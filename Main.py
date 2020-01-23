@@ -134,7 +134,7 @@ class SystemStats(object):
             start = origoutput[start:].find(':') + start
             start += 2
             end = origoutput[start:].find('\\n\'')
-            model= origoutput[start:end]
+            model= origoutput[start : (end+start)]
         else:
             # Find the Hardware Section
             start = origoutput.find('Hardware')
