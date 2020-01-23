@@ -127,13 +127,22 @@ class SystemStats(object):
     # ------------------------------------------------------------------------------------------------
     def rpi_model(self):
         origoutput = str(check_output(['cat', '/proc/cpuinfo']))
-        # Find the Hardware Section
-        start = origoutput.find('Hardware')
-        # Now advance past the colon
-        start = origoutput[start:].find(':') + start
-        # Look for next line with starts with 'Revision'
-        end = origoutput[start:].find('Revision') + start
-        model = origoutput[start + 1:end - 1]
+        ## Older models had a 'Model' section
+        start = origoutput.find('Model')
+        if (start > 0):
+            # Now advance past the colon
+            start = origoutput[start:].find(':') + start
+            start += 2
+            end = origoutput[start:].find('\\n\'')
+            model= origoutput[start:end]
+        else:
+            # Find the Hardware Section
+            start = origoutput.find('Hardware')
+            # Now advance past the colon
+            start = origoutput[start:].find(':') + start
+            # Look for next line with starts with 'Revision'
+            end = origoutput[start:].find('Revision') + start
+            model = origoutput[start + 1:end - 1]
         return model
 
     # ------------------------------------------------------------------------------------------------
@@ -269,7 +278,7 @@ class MessageHandler(object):
         data['datetime'] = datetime.datetime.now().replace(microsecond=0).isoformat()
         json_data = SystemStats().asJSON()
         self.client.publish('NODE', json_data, qos=0)
-3
+
     def send_host_status_info(self):
         logging.info('Sending System Status Info on node name topic')
         topic = SystemStats().get_hostname().upper()
