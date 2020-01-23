@@ -59,6 +59,8 @@ class SystemStats(object):
     def get_SSID(self, interface='wlan0'):
         ssid = "None"
         try:
+            #
+            # This will probably break when using Non-Ambiguious Interface names
             scanoutput = check_output(['iwconfig', interface])
             for line in scanoutput.split():
                 line = line.decode('utf-8')
@@ -126,11 +128,11 @@ class SystemStats(object):
     def rpi_model(self):
         origoutput = check_output(['cat', '/proc/cpuinfo'])
         # Find the Hardware Section
-        start = origoutput.find('Hardware')
+        start = origoutput.find(b'Hardware')
         # Now advance past the colon
-        start = origoutput[start:].find(':') + start
+        start = origoutput[start:].find(b':') + start
         # Look for next line with starts with 'Revision'
-        end = origoutput[start:].find('Revision') + start
+        end = origoutput[start:].find(b'Revision') + start
         model = origoutput[start + 1:end - 1]
         return model
 
@@ -138,18 +140,18 @@ class SystemStats(object):
     def rpi_revision(self):
         origoutput = check_output(['cat', '/proc/cpuinfo'])
         # Find the Hardware Section
-        start = origoutput.find('Revision')
+        start = origoutput.find(b'Revision')
         # Now advance past the colon
-        start = origoutput[start:].find(':') + start
+        start = origoutput[start:].find(b':') + start
         # Look for next line with starts with 'Revision'
-        end = origoutput[start:].find('Serial') + start
+        end = origoutput[start:].find(b'Serial') + start
         revision = origoutput[start + 1:end - 1]
         return revision
 
     # ------------------------------------------------------------------------------------------------
     def rpi_model_string(self):
-        model = self.rpi_model()
-        rev = self.rpi_revision()
+        model = str(self.rpi_model())
+        rev = str(self.rpi_revision())
         # 15Jan2020
         if '900021' in rev:
             return 'A+ 1.1 512MB Sony UK'
