@@ -161,6 +161,8 @@ class SystemStats(object):
     def rpi_model_string(self):
         model = self.rpi_model()
         rev = self.rpi_revision()
+        print('MODEL [{}].format(model)')
+        print('REV [{}].format(rev)')
         # 15Jan2020
         if '900021' in rev:
             return 'A+ 1.1 512MB Sony UK'
@@ -216,7 +218,44 @@ class SystemStats(object):
             return '4B 1.1 4GB Sony UK'
         elif 'c03112' in rev:
             return '4B 1.2 4GB Sony UK'
+        elif '0002' in rev:
+            return "B 	1.0 	256MB 	Egoman"
+        
+        elif '0003' in rev:
+            return "B  1.0  256MB  Egoman"
+        elif '0004' in rev:
+            return "B  2.0  256MB  Sony UK"
+        elif '0005' in rev:
+            return "B  2.0  256MB  Qisda"
+        elif '0006' in rev:
+            return "B  2.0  256MB  Egoman"
+        elif '0006' in rev:
+            return "A  2.0  256MB  Egoman"
+        elif '0007' in rev:
+            return "A  2.0  256MB  Sony UK"
+        elif '0008' in rev:
+            return "A  2.0  256MB  Qisda"
+        elif '0009' in rev:
+            return "B  2.0  512MB  Egoman"
+        elif '000d' in rev:
+            return "B  2.0  512MB  Sony UK"
+        elif '000e' in rev:
+                return "B  2.0  512MB  Egoman"
+        elif '00f' in rev:
+            return "B+  1.2  512MB  Sony UK"
+        elif '0011' in rev:
+            return "CM1  1.0  512MB  Sony UK"
+        elif '0012' in rev:
+            return "A+  1.1  256MB  Sony UK"
+        elif '0013' in rev:
+            return "B+  1.2  512MB  Embest"
+        elif '0014' in rev:
+            return "CM1  1.0  512MB  Embest"
+        elif '0015' in rev:
+            return "A+  1.1  256MB/512MB  Embest"
 
+
+        # If we got here - we didn't match a revision code
         return 'Unknown {}'.format(rev)
 
     # ------------------------------------------------------------------------------------------------
