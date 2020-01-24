@@ -161,8 +161,8 @@ class SystemStats(object):
     def rpi_model_string(self):
         model = self.rpi_model()
         rev = self.rpi_revision()
-        print('MODEL [{}].format(model)')
-        print('REV [{}].format(rev)')
+        #print('MODEL [{}]'.format(model))
+        #print('REV [{}]'.format(rev))
         # 15Jan2020
         if '900021' in rev:
             return 'A+ 1.1 512MB Sony UK'
