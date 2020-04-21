@@ -381,5 +381,5 @@ m.start()
 
 while True:
     m.send_node_status_info()
-    m.send_host_status_info()
+    ##m.send_host_status_info()
     time.sleep(60)
