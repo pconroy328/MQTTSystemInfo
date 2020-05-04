@@ -71,6 +71,22 @@ class SystemStats(object):
         return ssid
 
     # ------------------------------------------------------------------------------------------------
+    def get_SignalStrength(self, interface='wlan0'):
+        signal_strength = "?? dBm"
+        try:
+            #
+            # This will probably break when using Non-Ambiguious Interface names
+            scanoutput = check_output(['iwconfig', interface])
+            for line in scanoutput.splitlines():
+                line = line.decode('utf-8')
+		position=str2.find('Signal level=')
+		if (position > 0):
+		    signal_strength=line[position+13:]
+        except:
+            pass
+        return signal_strength
+
+    # ------------------------------------------------------------------------------------------------
     def get_wifi_ipaddress(self):
         ip_address = '?.?.?.?'
         try:
@@ -275,6 +291,7 @@ class SystemStats(object):
             "xmt_errors": self.network_xmt_errors(),
             "rcv_errors": self.network_rcv_errors(),
             "ssid": self.get_SSID(),
+            "signal_strength": get_SignalStrength(),
             "model": self.rpi_model_string(),
             "camera_present": self.get_camera_present()
         })
@@ -359,6 +376,7 @@ def discover_mqtt_host():
 
 
 logging.basicConfig(filename='/tmp/mqttsysteminfo.log', level=logging.INFO)
+logging.info('MQTTSystemInfo v2 [signal_strength]')
 logging.info('Multicast DNS Service Discovery for Python Browser test')
 logging.debug('Attempting to find mqtt broker via mDNS')
 
