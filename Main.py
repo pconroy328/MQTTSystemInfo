@@ -79,7 +79,7 @@ class SystemStats(object):
             scanoutput = check_output(['iwconfig', interface])
             for line in scanoutput.splitlines():
                 line = line.decode('utf-8')
-                position=str2.find('Signal level=')
+                position=line.find('Signal level=')
                 if (position > 0):
                     signal_strength=line[position+13:]
         except:
@@ -177,6 +177,7 @@ class SystemStats(object):
     def rpi_model_string(self):
         model = self.rpi_model()
         rev = self.rpi_revision()
+        logging.info( 'RPi Model {}  Rev {}'.format(model, rev))
         #print('MODEL [{}]'.format(model))
         #print('REV [{}]'.format(rev))
         # 15Jan2020
