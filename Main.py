@@ -177,7 +177,6 @@ class SystemStats(object):
     def rpi_model_string(self):
         model = self.rpi_model()
         rev = self.rpi_revision()
-        logging.info( 'RPi Model {}  Rev {}'.format(model, rev))
         #print('MODEL [{}]'.format(model))
         #print('REV [{}]'.format(rev))
         # 15Jan2020
@@ -273,6 +272,7 @@ class SystemStats(object):
 
 
         # If we got here - we didn't match a revision code
+        logging.info( 'Unknown RPi Model {}  Rev {}'.format(model, rev))
         return 'Unknown {}'.format(rev)
 
     # ------------------------------------------------------------------------------------------------
