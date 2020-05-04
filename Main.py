@@ -291,7 +291,7 @@ class SystemStats(object):
             "xmt_errors": self.network_xmt_errors(),
             "rcv_errors": self.network_rcv_errors(),
             "ssid": self.get_SSID(),
-            "signal_strength": get_SignalStrength(),
+            "signal_strength": self.get_SignalStrength(),
             "model": self.rpi_model_string(),
             "camera_present": self.get_camera_present()
         })
