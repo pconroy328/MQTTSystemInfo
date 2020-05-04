@@ -257,10 +257,8 @@ class SystemStats(object):
             return "B 2.0 512MB Sony UK"
         elif '000f' in rev:
             return "B 2.0 512MB Egoman"
-
         elif '0010' in rev:
-            return 'B+ 1.2 512MB Sony UK
-
+            return "B+ 1.2 512MB Sony UK"
         elif '0011' in rev:
             return "CM1 1.0 512MB Sony UK"
         elif '0012' in rev:
