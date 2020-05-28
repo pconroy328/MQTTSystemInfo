@@ -377,22 +377,27 @@ def discover_mqtt_host():
 
 
 logging.basicConfig(filename='/tmp/mqttsysteminfo.log', level=logging.INFO)
-logging.info('MQTTSystemInfo v2 [signal_strength]')
+logging.info('MQTTSystemInfo v2.1 [signal_strength]')
 logging.info('Multicast DNS Service Discovery for Python Browser test')
 logging.debug('Attempting to find mqtt broker via mDNS')
 
-
-host = discover_mqtt_host()
-if (host is not None):
-    mqtt_broker_address = host[0]
-    logging.info( 'Found MQTT Broker using mDNS on {}.{}'.format(host[0], host[1]))
-else:
-    logging.warning('Unable to locate MQTT Broker using DNS')
-    try:
-        mqtt_broker_address = sys.argv[1]
-    except:
-        logging.critical('No MQTT Broker address passed in via command line')
-        sys.exit(1)
+try:
+   host = sys.argv[1]
+   mqtt_broker_address = sys.argv[1]
+except:
+   print( 'No host passed in on command line. Trying mDNS' )
+   
+   host = discover_mqtt_host()
+   if (host is not None):
+       mqtt_broker_address = host[0]
+       logging.info( 'Found MQTT Broker using mDNS on {}.{}'.format(host[0], host[1]))
+   else:
+       logging.warning('Unable to locate MQTT Broker using DNS')
+       try:
+           mqtt_broker_address = sys.argv[1]
+       except:
+           logging.critical('mDNS failed and no MQTT Broker address passed in via command line. Exiting')
+           sys.exit(1)
 
 logging.debug('Connecting to {}'.format(mqtt_broker_address))
 m = MessageHandler(broker_address=mqtt_broker_address)
