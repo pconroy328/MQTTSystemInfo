@@ -95,31 +95,12 @@ class SystemStats(object):
         #    print('Interface is an access point - trying next.')
         #    interface='wlan1'
 
-    #
-    # These are far from standardized:
-    #
-    # Link Quality=35/70  Signal level=-75 dBm  
-    # Link Quality=100/100 Signal level=76/100  Noise level=0/100
-    '''
-    -30 dBm: This is the maximum signal strength. If you have this measurement, you are likely
-     standing right next to the access point.
-
-    -50 dBm: This is considered an excellent signal strength.
-
-    -60 dBm: This is a good signal strength.
-
-    -67 dBm: This is a reliable signal strength. This is the minimum for any online services that
-     require a reliable connection and Wi-Fi signal strength.
-
-    -70 dBm: This is not a strong signal strength. You may be able to check your email.
-
-    -80 dBm: This is an unreliable signal strength. You may be able to connect to your network, but
-     you will not support most online activity.
-
-    -90 dBm: This is a bad signal strength. You are not likely to connect to internet at this level.
-    '''
-
-
+        #
+        # These are far from standardized:
+        #
+        # Link Quality=35/70  Signal level=-75 dBm  
+        # Link Quality=100/100 Signal level=76/100  Noise level=0/100
+    
         signal_strength_str = "?? dBm"
         try:
             #
@@ -131,12 +112,13 @@ class SystemStats(object):
                 if (position > 0):
                     signal_strength_str=line[position+13:].strip()
                     print('signal strength -----------> {}'.format(signal_strength_str))
-            if (signal_strength_str.find('dBm'):
-            ss_value = (int) signal_strength_str.split(' ')
+
+                    if (signal_strength_str.find('dBm')):
+                        ss_value = (int) signal_strength_str.split(' ')
                         print('         dBm value -----------> {}'.format(ss_value))
 
-            elif (signal_strength_str.find('/'):
-            ss_value = (int) signal_strength_str.split('/')
+                    elif (signal_strength_str.find('/')):
+                        ss_value = (int) signal_strength_str.split('/')
                         print('         % value -----------> {}'.format(ss_value))
         except:
             pass
