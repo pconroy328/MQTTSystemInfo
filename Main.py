@@ -114,11 +114,11 @@ class SystemStats(object):
                     print('signal strength -----------> {}'.format(signal_strength_str))
 
                     if (signal_strength_str.find('dBm')):
-                        ss_value = (int) signal_strength_str.split(' ')
+                        ss_value = int(signal_strength_str.split(' '))
                         print('         dBm value -----------> {}'.format(ss_value))
 
                     elif (signal_strength_str.find('/')):
-                        ss_value = (int) signal_strength_str.split('/')
+                        ss_value = int(signal_strength_str.split('/'))
                         print('         % value -----------> {}'.format(ss_value))
         except:
             pass
