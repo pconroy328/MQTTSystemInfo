@@ -21,6 +21,8 @@ import sys
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 class SystemStats(object):
+    version = "v2.1 (checking for AP)"
+
     # ------------------------------------------------------------------------------------------------
     def __init__(self):
         pass
@@ -69,6 +71,22 @@ class SystemStats(object):
         except:
             pass
         return ssid
+
+    # ------------------------------------------------------------------------------------------------
+    def get_interface_mode(self, interface='wlan0'):
+        mode = "??"
+        try:
+            #
+            # This will probably break when using Non-Ambiguious Interface names
+            scanoutput = check_output(['iwconfig', interface])
+            for line in scanoutput.splitlines():
+                line = line.decode('utf-8')
+                position=line.find('Mode:')
+                if (position > 0):
+                    mode=line[position+5:]
+        except:
+            pass
+        return mode
 
     # ------------------------------------------------------------------------------------------------
     def get_SignalStrength(self, interface='wlan0'):
@@ -335,6 +353,7 @@ class MessageHandler(object):
         data['topic'] = 'NODE'
         data['datetime'] = datetime.datetime.now().replace(microsecond=0).isoformat()
         json_data = SystemStats().asJSON()
+        print(SystemStats().get_interface_mode())
         self.client.publish('NODE', json_data, qos=0)
 
     def send_host_status_info(self):
@@ -345,6 +364,7 @@ class MessageHandler(object):
         json_data = SystemStats().asJSON()
         data['topic'] = topic
         self.client.publish(topic, json_data, qos=0)
+
 
 def discover_mqtt_host():
     from zeroconf import ServiceBrowser, Zeroconf
@@ -376,6 +396,7 @@ def discover_mqtt_host():
         return None
 
 
+print(SystemStats.version)
 logging.basicConfig(filename='/tmp/mqttsysteminfo.log', level=logging.INFO)
 logging.info('MQTTSystemInfo v2.1 [signal_strength]')
 logging.info('Multicast DNS Service Discovery for Python Browser test')
@@ -405,5 +426,6 @@ m.start()
 
 while True:
     m.send_node_status_info()
+   
     ##m.send_host_status_info()
     time.sleep(60)
