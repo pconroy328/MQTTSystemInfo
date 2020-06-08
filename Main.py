@@ -83,13 +83,18 @@ class SystemStats(object):
                 line = line.decode('utf-8')
                 position=line.find('Mode:')
                 if (position > 0):
-                    mode=line[position+5:]
+                    mode=line[position+5:].split(' ',1)[0]
         except:
             pass
         return mode
 
     # ------------------------------------------------------------------------------------------------
     def get_SignalStrength(self, interface='wlan0'):
+        #
+        # New - check to see if the wlan0 is an access point
+        if (self.get_interface_mode(interface) == 'Master'):
+            print('Interface is an access point - trying next.')
+
         signal_strength = "?? dBm"
         try:
             #
