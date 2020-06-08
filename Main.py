@@ -125,13 +125,13 @@ class SystemStats(object):
         return signal_strength_str
 
     # ------------------------------------------------------------------------------------------------
-    def get_wifi_ipaddress(self):
+    def get_wifi_ipaddress(self,interface='wlan0'):
         ip_address = '?.?.?.?'
         try:
             foo = psutil.net_if_addrs()
-            if_family = foo['wlan0'][0][0]
+            if_family = foo[interface][0][0]
             if if_family == 2:
-                ip_address = foo['wlan0'][0][1]
+                ip_address = foo[interface][0][1]
         except:
             pass
         return ip_address
