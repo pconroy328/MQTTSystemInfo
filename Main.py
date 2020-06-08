@@ -91,9 +91,9 @@ class SystemStats(object):
     # ------------------------------------------------------------------------------------------------
     def get_SignalStrength(self, interface='wlan0'):
         #
-        # if (self.get_interface_mode(interface) == 'Master'):
-        #    print('Interface is an access point - trying next.')
-        #    interface='wlan1'
+        if (self.get_interface_mode(interface) == 'Master'):
+           print('Interface is an access point - trying next.')
+           interface='wlan1'
 
         #
         # These are far from standardized:
@@ -158,8 +158,8 @@ class SystemStats(object):
 
     # ------------------------------------------------------------------------------------------------
     def root_disk_size(self):
-    gigs = (psutil.disk_usage('/').total / 1000 / 1000 / 1000.0)
-    return f"{gigs:.1f}"
+        gigs = (psutil.disk_usage('/').total / 1000 / 1000 / 1000.0)
+        return f"{gigs:.1f}"
 
     # ------------------------------------------------------------------------------------------------
     def root_disk_percent_full(self):
@@ -334,8 +334,6 @@ class SystemStats(object):
             "ssid": self.get_SSID(),
             
             "signal_strength": self.get_SignalStrength(),
-            if (self.get_interface_mode('wlan0') == 'Master'):
-                "signal_strength": self.get_SignalStrength('wlan1'),
 
             "model": self.rpi_model_string(),
             "camera_present": self.get_camera_present()
