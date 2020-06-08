@@ -94,6 +94,7 @@ class SystemStats(object):
         # New - check to see if the wlan0 is an access point
         if (self.get_interface_mode(interface) == 'Master'):
             print('Interface is an access point - trying next.')
+            interface='wlan1'
 
         signal_strength = "?? dBm"
         try:
