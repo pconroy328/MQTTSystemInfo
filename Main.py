@@ -95,29 +95,29 @@ class SystemStats(object):
         #    print('Interface is an access point - trying next.')
         #    interface='wlan1'
 
-	#
-	# These are far from standardized:
-	#
-	# Link Quality=35/70  Signal level=-75 dBm  
-	# Link Quality=100/100 Signal level=76/100  Noise level=0/100
-	'''
-	-30 dBm: This is the maximum signal strength. If you have this measurement, you are likely
-	 standing right next to the access point.
+    #
+    # These are far from standardized:
+    #
+    # Link Quality=35/70  Signal level=-75 dBm  
+    # Link Quality=100/100 Signal level=76/100  Noise level=0/100
+    '''
+    -30 dBm: This is the maximum signal strength. If you have this measurement, you are likely
+     standing right next to the access point.
 
-	-50 dBm: This is considered an excellent signal strength.
+    -50 dBm: This is considered an excellent signal strength.
 
-	-60 dBm: This is a good signal strength.
+    -60 dBm: This is a good signal strength.
 
-	-67 dBm: This is a reliable signal strength. This is the minimum for any online services that
-	 require a reliable connection and Wi-Fi signal strength.
+    -67 dBm: This is a reliable signal strength. This is the minimum for any online services that
+     require a reliable connection and Wi-Fi signal strength.
 
-	-70 dBm: This is not a strong signal strength. You may be able to check your email.
+    -70 dBm: This is not a strong signal strength. You may be able to check your email.
 
-	-80 dBm: This is an unreliable signal strength. You may be able to connect to your network, but
-	 you will not support most online activity.
+    -80 dBm: This is an unreliable signal strength. You may be able to connect to your network, but
+     you will not support most online activity.
 
-	-90 dBm: This is a bad signal strength. You are not likely to connect to internet at this level.
-	'''
+    -90 dBm: This is a bad signal strength. You are not likely to connect to internet at this level.
+    '''
 
 
         signal_strength_str = "?? dBm"
@@ -131,13 +131,13 @@ class SystemStats(object):
                 if (position > 0):
                     signal_strength_str=line[position+13:].strip()
                     print('signal strength -----------> {}'.format(signal_strength_str))
-		    if (signal_strength_str.find('dBm'):
-			ss_value = (int) signal_strength_str.split(' ')
-                    	print('         dBm value -----------> {}'.format(ss_value))
+            if (signal_strength_str.find('dBm'):
+            ss_value = (int) signal_strength_str.split(' ')
+                        print('         dBm value -----------> {}'.format(ss_value))
 
-		    elif (signal_strength_str.find('/'):
-			ss_value = (int) signal_strength_str.split('/')
-                    	print('         % value -----------> {}'.format(ss_value))
+            elif (signal_strength_str.find('/'):
+            ss_value = (int) signal_strength_str.split('/')
+                        print('         % value -----------> {}'.format(ss_value))
         except:
             pass
         return signal_strength_str
@@ -176,8 +176,8 @@ class SystemStats(object):
 
     # ------------------------------------------------------------------------------------------------
     def root_disk_size(self):
-	gigs = (psutil.disk_usage('/').total / 1000 / 1000 / 1000.0)
-	return f"{gigs:.1f}"
+    gigs = (psutil.disk_usage('/').total / 1000 / 1000 / 1000.0)
+    return f"{gigs:.1f}"
 
     # ------------------------------------------------------------------------------------------------
     def root_disk_percent_full(self):
@@ -353,7 +353,7 @@ class SystemStats(object):
             
             "signal_strength": self.get_SignalStrength(),
             if (self.get_interface_mode('wlan0') == 'Master'):
-            	"signal_strength": self.get_SignalStrength('wlan1'),
+                "signal_strength": self.get_SignalStrength('wlan1'),
 
             "model": self.rpi_model_string(),
             "camera_present": self.get_camera_present()
