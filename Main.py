@@ -83,7 +83,7 @@ class SystemStats(object):
                 line = line.decode('utf-8')
                 position=line.find('Mode:')
                 if (position > 0):
-                    mode=line[position+5:].split(' ',1)[0]
+                    mode=line[position+5:].split(' ',1)[0].strip()
         except:
             pass
         return mode
@@ -91,12 +91,36 @@ class SystemStats(object):
     # ------------------------------------------------------------------------------------------------
     def get_SignalStrength(self, interface='wlan0'):
         #
-        # New - check to see if the wlan0 is an access point
-        if (self.get_interface_mode(interface) == 'Master'):
-            print('Interface is an access point - trying next.')
-            interface='wlan1'
+        # if (self.get_interface_mode(interface) == 'Master'):
+        #    print('Interface is an access point - trying next.')
+        #    interface='wlan1'
 
-        signal_strength = "?? dBm"
+	#
+	# These are far from standardized:
+	#
+	# Link Quality=35/70  Signal level=-75 dBm  
+	# Link Quality=100/100 Signal level=76/100  Noise level=0/100
+	'''
+	-30 dBm: This is the maximum signal strength. If you have this measurement, you are likely
+	 standing right next to the access point.
+
+	-50 dBm: This is considered an excellent signal strength.
+
+	-60 dBm: This is a good signal strength.
+
+	-67 dBm: This is a reliable signal strength. This is the minimum for any online services that
+	 require a reliable connection and Wi-Fi signal strength.
+
+	-70 dBm: This is not a strong signal strength. You may be able to check your email.
+
+	-80 dBm: This is an unreliable signal strength. You may be able to connect to your network, but
+	 you will not support most online activity.
+
+	-90 dBm: This is a bad signal strength. You are not likely to connect to internet at this level.
+	'''
+
+
+        signal_strength_str = "?? dBm"
         try:
             #
             # This will probably break when using Non-Ambiguious Interface names
@@ -105,10 +129,18 @@ class SystemStats(object):
                 line = line.decode('utf-8')
                 position=line.find('Signal level=')
                 if (position > 0):
-                    signal_strength=line[position+13:]
+                    signal_strength_str=line[position+13:].strip()
+                    print('signal strength -----------> {}'.format(signal_strength_str))
+		    if (signal_strength_str.find('dBm'):
+			ss_value = (int) signal_strength_str.split(' ')
+                    	print('         dBm value -----------> {}'.format(ss_value))
+
+		    elif (signal_strength_str.find('/'):
+			ss_value = (int) signal_strength_str.split('/')
+                    	print('         % value -----------> {}'.format(ss_value))
         except:
             pass
-        return signal_strength
+        return signal_strength_str
 
     # ------------------------------------------------------------------------------------------------
     def get_wifi_ipaddress(self):
@@ -144,7 +176,8 @@ class SystemStats(object):
 
     # ------------------------------------------------------------------------------------------------
     def root_disk_size(self):
-        return (psutil.disk_usage('/').total / 1000 / 1000 / 1000.0)
+	gigs = (psutil.disk_usage('/').total / 1000 / 1000 / 1000.0)
+	return f"{gigs:.1f}"
 
     # ------------------------------------------------------------------------------------------------
     def root_disk_percent_full(self):
@@ -306,6 +339,7 @@ class SystemStats(object):
             "host": self.get_hostname(),
             "eth0 IP": self.get_eth_ipaddress(),
             "wlan0 IP": self.get_wifi_ipaddress(),
+            "wlan1 IP": self.get_wifi_ipaddress('wlan1'),
             "booted": self.boot_datetime(),
             "uptime": self.get_uptime(),
             "cpu_pct": self.cpu_percent(),
@@ -316,7 +350,11 @@ class SystemStats(object):
             "xmt_errors": self.network_xmt_errors(),
             "rcv_errors": self.network_rcv_errors(),
             "ssid": self.get_SSID(),
+            
             "signal_strength": self.get_SignalStrength(),
+            if (self.get_interface_mode('wlan0') == 'Master'):
+            	"signal_strength": self.get_SignalStrength('wlan1'),
+
             "model": self.rpi_model_string(),
             "camera_present": self.get_camera_present()
         })
