@@ -39,7 +39,7 @@ class SystemStats(object):
         except:
             return 'N/A'
 
-        return (tempC * 1.8) + 32.0
+        return round((tempC * 1.8) + 32.0,1)
 
     # ------------------------------------------------------------------------------------------------
     def get_camera_present(self):
@@ -159,7 +159,8 @@ class SystemStats(object):
     # ------------------------------------------------------------------------------------------------
     def root_disk_size(self):
         gigs = (psutil.disk_usage('/').total / 1000 / 1000 / 1000.0)
-        return f"{gigs:.1f}"
+        ##return f"{gigs:.1f}"
+        return round(gigs,1)
 
     # ------------------------------------------------------------------------------------------------
     def root_disk_percent_full(self):
