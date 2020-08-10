@@ -319,6 +319,8 @@ class SystemStats(object):
     def asJSON(self):
         myDict = OrderedDict({
             "topic": 'NODE',
+            "version": '1.1',
+            "dateTime": datetime.datetime.now().replace(microsecond=0).isoformat(),
             "host": self.get_hostname(),
             "eth0 IP": self.get_eth_ipaddress(),
             "wlan0 IP": self.get_wifi_ipaddress(),
