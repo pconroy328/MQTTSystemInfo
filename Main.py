@@ -17,6 +17,148 @@ import paho.mqtt.client as mqtt
 import logging
 import time
 import sys
+import subprocess
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+class NetworkInterfaces(object):
+    version = "0.1 ()"
+
+    # ------------------------------------------------------------------------------------------------------------------
+    def get_ip_addresses(self,family):
+        for interface, snics in psutil.net_if_addrs().items():
+            for snic in snics:
+                if snic.family == family:
+                    yield (interface, snic.address)
+    
+    ##ipv4s = list(get_ip_addresses(socket.AF_INET))
+    ##ipv6s = list(get_ip_addresses(socket.AF_INET6))
+    ##print (ipv4s)
+
+
+    # ------------------------------------------------------------------------------------------------------------------
+    def get_connected_clients(self,interface):
+        try:
+            # Run the 'iw' command to get information about the wireless interface
+            command = "iw dev " + interface + " station dump | grep 'Station' | wc -l"
+
+            # Execute the command
+            output = subprocess.check_output(command, shell=True)
+
+            # Decode the output from bytes to string
+            output_str = output.decode('utf-8')
+
+            # Print the output
+            connected_clients = output_str.strip()
+            ##print("Number of stations:", output_str.strip())
+            return connected_clients
+
+        except subprocess.CalledProcessError:
+            print("Error running 'iw' command. Make sure the 'iw' tool is installed and the wireless interface is correct.")
+            return None
+
+    # ------------------------------------------------------------------------------------------------
+    def get_SSID(self, interface):
+        ssid = ""
+        itype = None
+        mac_addr = None
+        
+        try:
+            # Run the 'iw' command to get information about the wireless interface
+            command = "iw dev " + interface + " info"
+            print( command )
+            output = subprocess.check_output(command, shell=True)
+            output_str = output.decode('utf-8')
+
+            # Extract SSID, MAC address, and type
+            if 'ssid' in output_str:
+                ssid = output_str.split("ssid ")[1].split("\n")[0].strip()
+            if 'addr' in output_str:
+                mac_addr = output_str.split("addr ")[1].split("\n")[0].strip()
+            if 'type' in output_str:
+                itype = output_str.split("type ")[1].split("\n")[0].strip()
+
+        except subprocess.CalledProcessError:
+            print("Error running 'iw' command. Make sure the 'iw' tool is installed and the wireless interface is correct.")
+
+        return itype, ssid, mac_addr
+
+    # ------------------------------------------------------------------------------------------------
+    def get_interface_mode(self, interface):
+        mode = "??"
+        try:
+            #
+            # This will probably break when using Non-Ambiguious Interface names
+            scanoutput = check_output(['iwconfig', interface])
+            for line in scanoutput.splitlines():
+                line = line.decode('utf-8')
+                position=line.find('Mode:')
+                if (position > 0):
+                    mode=line[position+5:].split(' ',1)[0].strip()
+                if (mode == 'Master'):
+                    mode = "AP"
+        except:
+            pass
+        return mode
+
+    # ------------------------------------------------------------------------------------------------
+    def get_signal_strength(self, interface):
+        #
+        if (self.get_interface_mode(interface) == 'Master'):
+           return None
+
+        #
+        # These are far from standardized:
+        #
+        # Link Quality=35/70  Signal level=-75 dBm  
+        # Link Quality=100/100 Signal level=76/100  Noise level=0/100
+    
+        signal_strength_str = "?? dBm"
+        try:
+            #
+            # This will probably break when using Non-Ambiguious Interface names
+            scanoutput = check_output(['iwconfig', interface])
+            for line in scanoutput.splitlines():
+                line = line.decode('utf-8')
+                position=line.find('Signal level=')
+                if (position > 0):
+                    signal_strength_str=line[position+13:].strip()
+                    ##print('signal strength -----------> {}'.format(signal_strength_str))
+
+                    if (signal_strength_str.find('dBm')):
+                        ss_value = int(signal_strength_str.split(' '))
+                        ##print('         dBm value -----------> {}'.format(ss_value))
+
+                    elif (signal_strength_str.find('/')):
+                        ss_value = int(signal_strength_str.split('/'))
+                        ##print('         % value -----------> {}'.format(ss_value))
+        except:
+            pass
+        return signal_strength_str
+
+    # ------------------------------------------------------------------------------------------------------------------
+    def asJSON(self):
+        data = {"interfaces": []}
+
+        network_interfaces = list(self.get_ip_addresses(socket.AF_INET))
+        ##print(network_interfaces)
+
+        for item in network_interfaces:
+
+            if (item[0][:3] == "wlx") or (item[0][:3] == "wla"):
+                itype, ssid, mac_addr = self.get_SSID(item[0])
+                num_clients = self.get_connected_clients(item[0])
+                data["interfaces"].append( {"id": item[0], "ip": item[1], "mode": itype, "clients":num_clients, "ssid":ssid, "mac":mac_addr})
+            else:
+                data["interfaces"].append( {"id": item[0], "ip": item[1]})
+
+
+        #print(data)
+        #return json.dumps(data)
+        return data
+
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
@@ -57,72 +199,6 @@ class SystemStats(object):
             uptime_string = str(timedelta(seconds=uptime_seconds))
         return uptime_string
 
-    # ------------------------------------------------------------------------------------------------
-    def get_SSID(self, interface='wlan0'):
-        ssid = "None"
-        try:
-            #
-            # This will probably break when using Non-Ambiguious Interface names
-            scanoutput = check_output(['iwconfig', interface])
-            for line in scanoutput.split():
-                line = line.decode('utf-8')
-                if line[:5] == 'ESSID':
-                    ssid = line.split('"')[1]
-        except:
-            pass
-        return ssid
-
-    # ------------------------------------------------------------------------------------------------
-    def get_interface_mode(self, interface='wlan0'):
-        mode = "??"
-        try:
-            #
-            # This will probably break when using Non-Ambiguious Interface names
-            scanoutput = check_output(['iwconfig', interface])
-            for line in scanoutput.splitlines():
-                line = line.decode('utf-8')
-                position=line.find('Mode:')
-                if (position > 0):
-                    mode=line[position+5:].split(' ',1)[0].strip()
-        except:
-            pass
-        return mode
-
-    # ------------------------------------------------------------------------------------------------
-    def get_SignalStrength(self, interface='wlan0'):
-        #
-        if (self.get_interface_mode(interface) == 'Master'):
-           print('Interface is an access point - trying next.')
-           interface='wlan1'
-
-        #
-        # These are far from standardized:
-        #
-        # Link Quality=35/70  Signal level=-75 dBm  
-        # Link Quality=100/100 Signal level=76/100  Noise level=0/100
-    
-        signal_strength_str = "?? dBm"
-        try:
-            #
-            # This will probably break when using Non-Ambiguious Interface names
-            scanoutput = check_output(['iwconfig', interface])
-            for line in scanoutput.splitlines():
-                line = line.decode('utf-8')
-                position=line.find('Signal level=')
-                if (position > 0):
-                    signal_strength_str=line[position+13:].strip()
-                    print('signal strength -----------> {}'.format(signal_strength_str))
-
-                    if (signal_strength_str.find('dBm')):
-                        ss_value = int(signal_strength_str.split(' '))
-                        print('         dBm value -----------> {}'.format(ss_value))
-
-                    elif (signal_strength_str.find('/')):
-                        ss_value = int(signal_strength_str.split('/'))
-                        print('         % value -----------> {}'.format(ss_value))
-        except:
-            pass
-        return signal_strength_str
 
     # ------------------------------------------------------------------------------------------------
     def get_wifi_ipaddress(self,interface='wlan0'):
@@ -318,13 +394,10 @@ class SystemStats(object):
     # ------------------------------------------------------------------------------------------------
     def asJSON(self):
         myDict = OrderedDict({
-            "topic": 'NODE',
+            "topic": 'NODE2',
             "version": '1.1',
             "dateTime": datetime.datetime.now().replace(microsecond=0).isoformat(),
             "host": self.get_hostname(),
-            "eth0 IP": self.get_eth_ipaddress(),
-            "wlan0 IP": self.get_wifi_ipaddress(),
-            "wlan1 IP": self.get_wifi_ipaddress('wlan1'),
             "booted": self.boot_datetime(),
             "uptime": self.get_uptime(),
             "cpu_pct": self.cpu_percent(),
@@ -332,14 +405,11 @@ class SystemStats(object):
             "cpu_cnt": self.cpu_count(),
             "root_size": self.root_disk_size(),
             "root_percent": self.root_disk_percent_full(),
-            "xmt_errors": self.network_xmt_errors(),
-            "rcv_errors": self.network_rcv_errors(),
-            "ssid": self.get_SSID(),
-            
-            "signal_strength": self.get_SignalStrength(),
 
             "model": self.rpi_model_string(),
-            "camera_present": self.get_camera_present()
+            "camera_present": self.get_camera_present(),
+            "network": NetworkInterfaces().asJSON()
+
         })
         return json.dumps(myDict)
 
@@ -377,20 +447,20 @@ class MessageHandler(object):
     def send_node_status_info(self):
         #logging.DEBUG('Sending System Status Info on 'NODE' topic!')
         data = {}
-        data['topic'] = 'NODE'
+        data['topic'] = 'NODE2'
         data['datetime'] = datetime.datetime.now().replace(microsecond=0).isoformat()
         json_data = SystemStats().asJSON()
-        print(SystemStats().get_interface_mode())
-        self.client.publish('NODE', json_data, qos=0)
+        print(json_data)
+        #self.client.publish('NODE2', json_data, qos=0)
 
-    def send_host_status_info(self):
-        logging.info('Sending System Status Info on node name topic')
-        topic = SystemStats().get_hostname().upper()
-        data = {}
-        data['datetime'] = datetime.datetime.now().replace(microsecond=0).isoformat()
-        json_data = SystemStats().asJSON()
-        data['topic'] = topic
-        self.client.publish(topic, json_data, qos=0)
+    ##def send_host_status_info(self):
+    ##    logging.info('Sending System Status Info on node name topic')
+    ##    topic = SystemStats().get_hostname().upper()
+    ##    data = {}
+    ##    data['datetime'] = datetime.datetime.now().replace(microsecond=0).isoformat()
+    ##    json_data = SystemStats().asJSON()
+    ##    data['topic'] = topic
+    ##    self.client.publish(topic, json_data, qos=0)
 
 
 def discover_mqtt_host():
