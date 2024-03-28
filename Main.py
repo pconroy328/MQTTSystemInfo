@@ -148,7 +148,7 @@ class NetworkInterfaces(object):
 
             if (item[0][:3] == "wlx") or (item[0][:3] == "wla"):
                 itype, ssid, mac_addr = self.get_SSID(item[0])
-                num_clients = self.get_connected_clients(item[0])
+                num_clients = int(self.get_connected_clients(item[0]))
                 data["interfaces"].append( {"id": item[0], "ip": item[1], "mode": itype, "clients":num_clients, "ssid":ssid, "mac":mac_addr})
             else:
                 data["interfaces"].append( {"id": item[0], "ip": item[1]})
