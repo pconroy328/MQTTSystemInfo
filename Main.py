@@ -394,7 +394,7 @@ class SystemStats(object):
     # ------------------------------------------------------------------------------------------------
     def asJSON(self):
         myDict = OrderedDict({
-            "topic": 'NODE2',
+            "topic": 'NODE',
             "version": '1.1',
             "dateTime": datetime.datetime.now().replace(microsecond=0).isoformat(),
             "host": self.get_hostname(),
@@ -447,11 +447,11 @@ class MessageHandler(object):
     def send_node_status_info(self):
         #logging.DEBUG('Sending System Status Info on 'NODE' topic!')
         data = {}
-        data['topic'] = 'NODE2'
+        data['topic'] = 'NODE'
         data['datetime'] = datetime.datetime.now().replace(microsecond=0).isoformat()
         json_data = SystemStats().asJSON()
-        print(json_data)
-        #self.client.publish('NODE2', json_data, qos=0)
+        #print(json_data)
+        self.client.publish('NODE', json_data, qos=0)
 
     ##def send_host_status_info(self):
     ##    logging.info('Sending System Status Info on node name topic')
