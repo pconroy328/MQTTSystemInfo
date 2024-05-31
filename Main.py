@@ -385,6 +385,8 @@ class SystemStats(object):
             return "CM1 1.0 512MB Embest"
         elif '0015' in rev:
             return "A+ 1.1 256MB/512MB Embest"
+        else:
+            return model
 
 
         # If we got here - we didn't match a revision code
