@@ -397,7 +397,7 @@ class SystemStats(object):
     def asJSON(self):
         myDict = OrderedDict({
             "topic": 'NODE',
-            "version": '1.1',
+            "version": '1.2',
             "dateTime": datetime.datetime.now().replace(microsecond=0).isoformat(),
             "host": self.get_hostname(),
             "booted": self.boot_datetime(),
