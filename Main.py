@@ -163,7 +163,7 @@ class NetworkInterfaces(object):
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 class SystemStats(object):
-    version = "v2.1 (checking for AP)"
+    version = "v2.2 (paho-mqtt v2 or 1.6)"
 
     # ------------------------------------------------------------------------------------------------
     def __init__(self):
@@ -421,7 +421,16 @@ class MessageHandler(object):
     def __init__(self, broker_address="mqtt.local"):
         # self.local_broker_address = ''
         self.broker_address = broker_address
-        self.client = mqtt.Client(client_id="", clean_session=True, userdata=None)
+
+        try:
+            try:
+                mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+            except Exception as ex:
+                mqttc = mqtt.Client(client_id="", clean_session=True, userdata=None)
+        except Exception as ex:
+            logging.critical('Unable to connect to our MQTT Broker!')
+            logging.critical(ex)
+            sys.exit(1)
 
     # ---------------------------------------------------------------------
     def on_connect(self, client, userdata, flags, rc):
