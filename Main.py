@@ -163,7 +163,7 @@ class NetworkInterfaces(object):
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 class SystemStats(object):
-    version = "v2.2 (paho-mqtt v2 or 1.6)"
+    version = "v2.3 (date/time in logging)"
 
     # ------------------------------------------------------------------------------------------------
     def __init__(self):
@@ -505,7 +505,11 @@ def discover_mqtt_host():
 
 
 print(SystemStats.version)
-logging.basicConfig(filename='/tmp/mqttsysteminfo.log', level=logging.INFO)
+##logging.basicConfig(filename='/tmp/mqttsysteminfo.log', level=logging.INFO)
+time_format = "%d%b%Y %H:%M:%S"
+logging.basicConfig(format='%(asctime)s:%(levelname)s: %(message)s', datefmt=time_format, filename='/tmp/mqttsysteminfo.log', level=logging.INFO)
+
+
 logging.info('MQTTSystemInfo v2.1 [signal_strength]')
 logging.info('Multicast DNS Service Discovery for Python Browser test')
 logging.debug('Attempting to find mqtt broker via mDNS')
