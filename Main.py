@@ -504,13 +504,14 @@ def discover_mqtt_host():
         return None
 
 
-print(SystemStats.version)
+##print(SystemStats.version)
 ##logging.basicConfig(filename='/tmp/mqttsysteminfo.log', level=logging.INFO)
 time_format = "%d%b%Y %H:%M:%S"
 logging.basicConfig(format='%(asctime)s:%(levelname)s: %(message)s', datefmt=time_format, filename='/tmp/mqttsysteminfo.log', level=logging.INFO)
 
 
-logging.info('MQTTSystemInfo v2.1 [signal_strength]')
+logging.warning('MQTTSystemInfo')
+logging.warning(SystemStats.version)
 logging.info('Multicast DNS Service Discovery for Python Browser test')
 logging.debug('Attempting to find mqtt broker via mDNS')
 
