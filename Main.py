@@ -427,6 +427,8 @@ class MessageHandler(object):
                 mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
             except Exception as ex:
                 mqttc = mqtt.Client(client_id="", clean_session=True, userdata=None)
+
+            self.client = mqttc
         except Exception as ex:
             logging.critical('Unable to connect to our MQTT Broker!')
             logging.critical(ex)
