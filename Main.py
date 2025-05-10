@@ -18,7 +18,8 @@ import logging
 import time
 import sys
 import subprocess
-
+import re
+from subprocess import check_output, CalledProcessError
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
@@ -104,39 +105,42 @@ class NetworkInterfaces(object):
 
     # ------------------------------------------------------------------------------------------------
     def get_signal_strength(self, interface):
-        #
-        if (self.get_interface_mode(interface) == 'Master'):
-           return None
+        if self.get_interface_mode(interface) == 'Master':
+            return None
 
-        #
-        # These are far from standardized:
-        #
-        # Link Quality=35/70  Signal level=-75 dBm  
-        # Link Quality=100/100 Signal level=76/100  Noise level=0/100
-    
-        signal_strength_str = "?? dBm"
         try:
-            #
-            # This will probably break when using Non-Ambiguious Interface names
             scanoutput = check_output(['iwconfig', interface])
             for line in scanoutput.splitlines():
                 line = line.decode('utf-8')
-                position=line.find('Signal level=')
-                if (position > 0):
-                    signal_strength_str=line[position+13:].strip()
-                    ##print('signal strength -----------> {}'.format(signal_strength_str))
+                match = re.search(r'Signal level=(-?\d+)\s*dBm', line)
+                if match:
+                    ss_value = int(match.group(1))
+                    ##print(f"Signal strength found: {ss_value} dBm")
+                    return ss_value
+                ##else:
+                    ##print('No match in line:', line)
+    
+        except CalledProcessError as e:
+            print("iwconfig command failed:", e)
+        except Exception as e:
+            print("Error occurred:", e)
+    
+        return None
 
-                    if (signal_strength_str.find('dBm')):
-                        ss_value = int(signal_strength_str.split(' '))
-                        ##print('         dBm value -----------> {}'.format(ss_value))
-
-                    elif (signal_strength_str.find('/')):
-                        ss_value = int(signal_strength_str.split('/'))
-                        ##print('         % value -----------> {}'.format(ss_value))
-        except:
-            pass
-        return signal_strength_str
-
+    # ------------------------------------------------------------------------------------------------
+    def signal_strength_description(self, dbm):
+        ##print('>>>>>>>>>>>>>>>>>>>>>>', dbm)
+        if dbm >= -50:
+            return "Excellent"
+        elif -51 <= dbm <= -70:
+            return "Good"
+        elif -71 <= dbm <= -80:
+            return "Fair"
+        elif dbm <= -81:
+            return "Poor"
+        else:
+            return "Unknown"
+        
     # ------------------------------------------------------------------------------------------------------------------
     def asJSON(self):
         data = {"interfaces": []}
@@ -149,7 +153,9 @@ class NetworkInterfaces(object):
             if (item[0][:3] == "wlx") or (item[0][:3] == "wla"):
                 itype, ssid, mac_addr = self.get_SSID(item[0])
                 num_clients = int(self.get_connected_clients(item[0]))
-                data["interfaces"].append( {"id": item[0], "ip": item[1], "mode": itype, "clients":num_clients, "ssid":ssid, "mac":mac_addr})
+                signal_strength = self.get_signal_strength(item[0]))
+                ss_string= self.signal_strength_description(self, signal_strength)
+                data["interfaces"].append( {"id": item[0], "ip": item[1], "mode": itype, "clients":num_clients, "ssid":ssid, "mac":mac_addr, "ss":signal_strength, "sss":ss_string:})
             else:
                 data["interfaces"].append( {"id": item[0], "ip": item[1]})
 
@@ -397,7 +403,7 @@ class SystemStats(object):
     def asJSON(self):
         myDict = OrderedDict({
             "topic": 'NODE',
-            "version": '1.2',
+            "version": '1.3',
             "dateTime": datetime.datetime.now().replace(microsecond=0).isoformat(),
             "host": self.get_hostname(),
             "booted": self.boot_datetime(),
