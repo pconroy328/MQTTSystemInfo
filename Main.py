@@ -155,7 +155,7 @@ class NetworkInterfaces(object):
                 num_clients = int(self.get_connected_clients(item[0]))
                 signal_strength = self.get_signal_strength(item[0])
                 ss_string= self.signal_strength_description(self, signal_strength)
-                data["interfaces"].append( {"id": item[0], "ip": item[1], "mode": itype, "clients":num_clients, "ssid":ssid, "mac":mac_addr, "ss":signal_strength, "sss":ss_string:})
+                data["interfaces"].append( {"id": item[0], "ip": item[1], "mode": itype, "clients":num_clients, "ssid":ssid, "mac":mac_addr, "ss":signal_strength, "sss":ss_string})
             else:
                 data["interfaces"].append( {"id": item[0], "ip": item[1]})
 
